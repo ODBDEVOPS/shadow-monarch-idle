@@ -1,0 +1,955 @@
+
+<div class="flex flex-col h-screen bg-[#0a0a12] text-gray-300 font-sans overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 z-20 bg-[#0a0a12]/80 backdrop-blur-sm border-b border-violet-900/50 p-3 flex justify-between items-center h-20">
+    <h1 class="text-xl font-bold neon-text-blue">Shadow Monarch</h1>
+    <div class="flex flex-col items-end space-y-1 text-sm">
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-1">
+          <span class="text-yellow-400">💰</span>
+          <span>{{ formattedMana() }}</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="text-violet-400">💎</span>
+          <span>{{ formattedGems() }}</span>
+        </div>
+      </div>
+      <div class="w-24 text-right">
+         <div class="flex justify-between items-center text-xs mb-0.5">
+            <span class="font-bold text-yellow-300">LVL {{ playerLevel() }}</span>
+          </div>
+          <div class="w-full bg-gray-800 rounded-full h-1.5">
+            <div class="bg-yellow-400 h-1.5 rounded-full" [style.width]="(playerExperience() / playerExperienceToNextLevel() * 100) + '%'"></div>
+          </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Notification Toast -->
+  @if(notification(); as message) {
+    <div class="fixed top-24 left-1/2 -translate-x-1/2 z-30 bg-violet-600/90 text-white py-2 px-6 rounded-full shadow-lg neon-glow-violet animate-fade-in-down">
+        {{ message }}
+    </div>
+  }
+
+
+  <!-- Main Content Area -->
+  <main class="flex-grow overflow-y-auto pt-20 pb-20 px-4">
+    @switch (activeView()) {
+      @case ('Dashboard') {
+        <div class="animate-fade-in space-y-6">
+          <h2 class="text-2xl font-bold neon-text-blue">Sovereign's Command</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Sovereign Status -->
+            <div class="md:col-span-2 bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+              <h3 class="font-semibold text-violet-300 mb-3 text-lg flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Sovereign Status</h3>
+              <div class="flex justify-around text-center">
+                <div>
+                  <p class="text-sm text-gray-400">Player Level</p>
+                  <p class="text-2xl font-bold text-yellow-300">{{ playerLevel() }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400">Army Power</p>
+                  <p class="text-2xl font-bold text-red-400">{{ formatStat(totalArmyAttack()) }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400">Ascensions</p>
+                  <p class="text-2xl font-bold text-cyan-400">{{ ascensionCount() }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Player Stats -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+              <h3 class="font-semibold text-violet-300 mb-3 text-lg flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>Player Stats</h3>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <p class="text-gray-400">Rank:</p><p class="font-bold text-white text-right">{{ playerRank() }}</p>
+                  <p class="text-gray-400">HP:</p><p class="font-bold text-white text-right">{{ formatStat(playerHP()) }}</p>
+                  <p class="text-gray-400">Attack:</p><p class="font-bold text-white text-right">{{ formatStat(playerAttack()) }}</p>
+                  <p class="text-gray-400">Defense:</p><p class="font-bold text-white text-right">{{ formatStat(playerDefense()) }}</p>
+              </div>
+            </div>
+
+            <!-- Auto-Combat Status -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+              <h3 class="font-semibold text-violet-300 mb-2 text-lg flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M19.428 10.532a1 1 0 00-1.097 1.097l.387 3.871-3.87-1.382a1 1 0 00-1.25.122l-2.344 2.343-3.86-3.86a1 1 0 00-1.414 0l-2.344 2.343-1.38-3.869a1 1 0 00-1.097-1.097l-3.87.387 1.382 3.87a1 1 0 00.122 1.25l2.343 2.344 3.86 3.86a1 1 0 001.414 0l2.343-2.344 3.87 1.382a1 1 0 001.25-.122l2.343-2.344 1.38 3.87a1 1 0 001.098 1.097l3.87-.387-1.382-3.87a1 1 0 00-.122-1.25l-2.343-2.344-3.86-3.86a1 1 0 000-1.414l2.344-2.343 3.869 1.38a1 1 0 001.097-1.097l-.387-3.87z" /></svg>Auto-Combat</h3>
+              <p class="text-sm text-gray-400">Zone: <span class="font-bold text-white">{{ currentZone() }}</span></p>
+              <p class="text-sm text-gray-400 mb-2">Fighting: <span class="font-bold" [class.text-red-400]="isFightingBoss()">{{ enemyName() }}</span></p>
+              <div class="flex justify-between items-center text-xs mb-1">
+                <span class="font-bold text-blue-300">Wave Progress</span>
+                <span>{{ currentWave() }} / 10</span>
+              </div>
+              <div class="w-full bg-gray-800 rounded-full h-2.5">
+                <div class="bg-gradient-to-r from-blue-500 to-violet-500 h-2.5 rounded-full" [style.width]="(currentWave() / 10 * 100) + '%'"></div>
+              </div>
+            </div>
+            
+            <!-- Activities Hub -->
+            <div class="md:col-span-2 bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+                <h3 class="font-semibold text-violet-300 mb-3 text-lg flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>Activities Hub</h3>
+                <div class="space-y-3 text-sm">
+                    @if (expeditedDungeon(); as dungeon) {
+                        <div class="flex items-center justify-between bg-gray-800/40 p-2 rounded-md">
+                            <div class="flex items-center">
+                                <span class="text-xl mr-2">{{dungeon.icon}}</span>
+                                <div>
+                                    <p class="font-semibold text-white">Dungeon Ready Soon</p>
+                                    <p class="text-xs text-gray-400">{{dungeon.name}}</p>
+                                </div>
+                            </div>
+                            <p class="font-bold text-yellow-300">{{formatTime(dungeon.remainingTime())}}</p>
+                        </div>
+                    } @else {
+                        <button (click)="setView('Dungeons')" class="w-full text-left flex items-center justify-between bg-gray-800/40 p-2 rounded-md hover:bg-gray-700/50 transition-colors">
+                            <div><p class="font-semibold text-white">No active dungeons.</p><p class="text-xs text-gray-400">Send an army.</p></div>
+                            <span class="text-xl">➡️</span>
+                        </button>
+                    }
+                    @if (raidBoss(); as boss) {
+                       <div class="flex items-center justify-between bg-gray-800/40 p-2 rounded-md">
+                           <div class="flex items-center">
+                               <span class="text-xl mr-2">🐲</span>
+                               <div>
+                                   <p class="font-semibold text-white">Raid in Progress</p>
+                                   <p class="text-xs text-gray-400">{{boss.name}}</p>
+                               </div>
+                           </div>
+                           <p class="font-bold text-red-400">{{(boss.currentHp() / boss.totalHp * 100).toFixed(1)}}% HP</p>
+                       </div>
+                    }
+                    <button (click)="setView('Gates')" class="w-full text-left flex items-center justify-between bg-gray-800/40 p-2 rounded-md hover:bg-gray-700/50 transition-colors">
+                        <div><p class="font-semibold text-white">Explore the Gates</p><p class="text-xs text-gray-400">Enter a procedural dungeon.</p></div>
+                        <span class="text-xl">➡️</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Quests -->
+            <div class="md:col-span-2 bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+              <h3 class="font-semibold text-violet-300 mb-3 text-lg flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>Active Quests</h3>
+              <div class="space-y-3">
+                @for (quest of dashboardQuests(); track quest.id) {
+                    <div>
+                        <p class="text-sm font-semibold truncate">{{ quest.title }}</p>
+                        @if(quest.objectives.length > 0) {
+                          <div class="w-full bg-gray-800 rounded-full h-2 mt-1">
+                             <div class="bg-gradient-to-r from-blue-500 to-violet-500 h-2 rounded-full" [style.width]="(quest.objectives[0].progress() / quest.objectives[0].target * 100) + '%'"></div>
+                          </div>
+                        }
+                    </div>
+                } @empty {
+                    <p class="text-center text-gray-500 py-4">No active quests.</p>
+                }
+                <button (click)="setView('Quests')" class="w-full text-center text-sm text-violet-300 hover:text-white pt-2">View All Quests</button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      }
+      @case ('Army') {
+        <div class="animate-fade-in">
+          @if (selectedUnit(); as unit) {
+            <!-- Detail View -->
+            <div class="animate-fade-in">
+              <button (click)="deselectUnit()" class="mb-4 flex items-center text-violet-300 hover:text-violet-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                Back to Army
+              </button>
+            
+              <div class="flex flex-col items-center mb-6">
+                <div class="w-28 h-28 flex items-center justify-center text-7xl bg-gray-800/50 rounded-full mx-auto mb-4 neon-border-blue">{{unit.icon}}</div>
+                <h2 class="text-2xl font-bold neon-text-blue">{{ unit.name }}</h2>
+                <p class="text-gray-400">Rank {{ unit.rank }} - Level {{ unit.level }}</p>
+              </div>
+              
+               <!-- XP Bar -->
+              <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                <div class="flex justify-between items-center text-xs mb-1">
+                  <span class="font-bold text-yellow-300">XP</span>
+                  <span>{{ formatStat(unit.experience) }} / {{ formatStat(unit.experienceToNextLevel) }}</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2.5">
+                  <div class="bg-yellow-400 h-2.5 rounded-full" [style.width]="(unit.experience / unit.experienceToNextLevel * 100) + '%'"></div>
+                </div>
+              </div>
+            
+              <!-- Stats -->
+              <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                <h3 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Stats</h3>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <p>HP:</p><p class="font-bold text-white text-right">{{ unit.stats.hp }}</p>
+                  <p>Attack:</p><p class="font-bold text-white text-right">{{ unit.stats.attack }}</p>
+                  <p>Defense:</p><p class="font-bold text-white text-right">{{ unit.stats.defense }}</p>
+                  <p>Speed:</p><p class="font-bold text-white text-right">{{ unit.stats.speed }}</p>
+                </div>
+              </div>
+            
+              <!-- Upgrades -->
+              <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+                <h3 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Upgrades</h3>
+                <div class="space-y-3">
+                  @for (upgrade of unit.upgrades; track upgrade.name) {
+                    <div class="flex justify-between items-center bg-gray-800/30 p-3 rounded-md">
+                      <div>
+                        <p class="font-semibold text-white">{{ upgrade.name }}</p>
+                        <p class="text-xs text-green-400">{{ upgrade.bonus }}</p>
+                        @if (unit.level < upgrade.levelRequirement && !upgrade.purchased) {
+                          <p class="text-xs text-red-400">Requires Level {{ upgrade.levelRequirement }}</p>
+                        }
+                      </div>
+                      <button 
+                        (click)="upgradeUnit(unit, upgrade)"
+                        [disabled]="upgrade.purchased || mana() < upgrade.cost || unit.level < upgrade.levelRequirement"
+                        class="text-white font-bold py-2 px-4 rounded-md transition-all duration-200 text-sm w-32 text-center"
+                        [class.bg-violet-600]="!upgrade.purchased"
+                        [class.hover:bg-violet-500]="!upgrade.purchased && mana() >= upgrade.cost && unit.level >= upgrade.levelRequirement"
+                        [class.neon-glow-violet]="!upgrade.purchased && mana() >= upgrade.cost && unit.level >= upgrade.levelRequirement"
+                        [class.bg-gray-600]="upgrade.purchased"
+                        [class.bg-red-800/50]="!upgrade.purchased && (mana() < upgrade.cost || unit.level < upgrade.levelRequirement)"
+                        [class.cursor-not-allowed]="upgrade.purchased || mana() < upgrade.cost || unit.level < upgrade.levelRequirement">
+                        @if (upgrade.purchased) {
+                          <span>Upgraded</span>
+                        } @else {
+                          <span>
+                            <span class="text-yellow-300">💰</span> {{ formatStat(upgrade.cost) }}
+                          </span>
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          } @else {
+            <!-- Grid View -->
+            <h2 class="text-2xl font-bold neon-text-blue mb-4">Army of Shadows</h2>
+            <p class="mb-6 text-gray-400">Manage your units, their ranks, and synergies.</p>
+
+            <!-- Search and Sort Controls -->
+            <div class="mb-4">
+              <input 
+                type="text" 
+                placeholder="Search units..." 
+                [value]="searchTerm()"
+                (input)="onSearch($event)"
+                class="w-full bg-gray-900/70 border border-violet-800/50 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 mb-3">
+
+              <div class="flex items-center justify-center space-x-2 text-sm">
+                <span class="text-gray-400">Sort by:</span>
+                <button (click)="setSort('rank')" class="px-3 py-1 rounded-md transition-colors" [class.bg-violet-600]="sortBy() === 'rank'" [class.text-white]="sortBy() === 'rank'" [class.bg-gray-800]="sortBy() !== 'rank'">
+                  Rank 
+                  @if(sortBy() === 'rank') {
+                    <span>{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </button>
+                <button (click)="setSort('level')" class="px-3 py-1 rounded-md transition-colors" [class.bg-violet-600]="sortBy() === 'level'" [class.text-white]="sortBy() === 'level'" [class.bg-gray-800]="sortBy() !== 'level'">
+                  Level
+                  @if(sortBy() === 'level') {
+                    <span>{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </button>
+                <button (click)="setSort('name')" class="px-3 py-1 rounded-md transition-colors" [class.bg-violet-600]="sortBy() === 'name'" [class.text-white]="sortBy() === 'name'" [class.bg-gray-800]="sortBy() !== 'name'">
+                  Name
+                   @if(sortBy() === 'name') {
+                    <span>{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </button>
+              </div>
+            </div>
+
+             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              @for (unit of filteredAndSortedUnits(); track unit.name; let idx = $index) {
+                <div (click)="selectUnit(unit)" class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 text-center cursor-pointer hover:bg-violet-900/50 transition-all duration-200 hover:border-violet-600">
+                  <div class="w-20 h-20 flex items-center justify-center text-5xl bg-gray-800/50 rounded-md mx-auto mb-2 neon-border-blue">{{unit.icon}}</div>
+                  <h4 class="font-semibold text-sm">{{unit.name}}</h4>
+                  <p class="text-xs text-gray-400">Rank {{unit.rank}} - Lvl {{unit.level}}</p>
+                </div>
+              }
+            </div>
+            @if(filteredAndSortedUnits().length === 0) {
+              <p class="text-center text-gray-500 mt-8">No units found.</p>
+            }
+          }
+        </div>
+      }
+      @case ('Skills') {
+        <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold neon-text-blue mb-2">Player Skills</h2>
+          <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 mb-4 text-center">
+            <p class="font-bold text-lg text-yellow-300">{{ skillPoints() }} <span class="text-gray-300 font-normal">Skill Points Available</span></p>
+          </div>
+
+          <!-- Skill Tree Tabs -->
+          <div class="flex items-center justify-center border-b border-violet-800/50 mb-4">
+            @for(tree of skillTrees(); track tree.name) {
+              <button (click)="activeSkillTree.set(tree.name)" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeSkillTree() === tree.name" [class.border-b-2]="activeSkillTree() === tree.name" [class.border-violet-400]="activeSkillTree() === tree.name" [class.text-gray-500]="activeSkillTree() !== tree.name">
+                {{ tree.name }}
+              </button>
+            }
+          </div>
+
+          <!-- Skills List -->
+          <div class="space-y-3">
+             @for(tree of skillTrees(); track tree.name) {
+                @if(activeSkillTree() === tree.name) {
+                    @for(skill of tree.skills; track skill.id) {
+                      <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 flex justify-between items-center">
+                        <div>
+                          <h4 class="font-semibold text-white">{{ skill.name }} <span class="text-yellow-400">[{{ skill.level }}/{{ skill.maxLevel }}]</span></h4>
+                          <p class="text-xs text-gray-400">{{ skill.description }}</p>
+                        </div>
+                        <button 
+                          (click)="purchaseSkill(skill)"
+                          [disabled]="skillPoints() < 1 || skill.level >= skill.maxLevel"
+                          class="text-white font-bold py-2 px-4 rounded-md transition-all duration-200 text-sm w-32 text-center disabled:cursor-not-allowed disabled:bg-gray-600"
+                          [class.bg-violet-600]="skill.level < skill.maxLevel"
+                          [class.hover:bg-violet-500]="skill.level < skill.maxLevel"
+                          [class.neon-glow-violet]="skill.level < skill.maxLevel && skillPoints() >= 1"
+                          [class.bg-yellow-600]="skill.level >= skill.maxLevel"
+                          >
+                          @if(skill.level >= skill.maxLevel) {
+                            <span>Maxed</span>
+                          } @else {
+                            <span>Upgrade (1)</span>
+                          }
+                        </button>
+                      </div>
+                    }
+                }
+             }
+          </div>
+        </div>
+      }
+      @case ('Inventory') {
+        <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold neon-text-blue mb-2">Inventory</h2>
+          <p class="mb-4 text-gray-400">Manage your artifacts, items, and currencies.</p>
+
+          <!-- Inventory Tabs -->
+          <div class="flex items-center justify-center border-b border-violet-800/50 mb-4">
+            <button (click)="activeInventoryTab.set('Artifacts')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeInventoryTab() === 'Artifacts'" [class.border-b-2]="activeInventoryTab() === 'Artifacts'" [class.border-violet-400]="activeInventoryTab() === 'Artifacts'" [class.text-gray-500]="activeInventoryTab() !== 'Artifacts'">
+              Artifacts
+            </button>
+            <button (click)="activeInventoryTab.set('Items')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeInventoryTab() === 'Items'" [class.border-b-2]="activeInventoryTab() === 'Items'" [class.border-violet-400]="activeInventoryTab() === 'Items'" [class.text-gray-500]="activeInventoryTab() !== 'Items'">
+              Items
+            </button>
+             <button (click)="activeInventoryTab.set('Currencies')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeInventoryTab() === 'Currencies'" [class.border-b-2]="activeInventoryTab() === 'Currencies'" [class.border-violet-400]="activeInventoryTab() === 'Currencies'" [class.text-gray-500]="activeInventoryTab() !== 'Currencies'">
+              Currencies
+            </button>
+          </div>
+
+          @if(activeInventoryTab() === 'Artifacts') {
+            <div class="animate-fade-in">
+              <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 mb-4 text-center">
+                <p class="font-bold text-lg text-yellow-300">{{ equippedArtifacts().length }} / {{ maxEquippedArtifacts }} <span class="text-gray-300 font-normal">Equipped</span></p>
+              </div>
+              <div class="space-y-3">
+                @for(artifact of artifacts(); track artifact.id) {
+                  <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                      <span class="text-3xl">{{ artifact.icon }}</span>
+                      <div>
+                        <h4 class="font-semibold text-white">{{ artifact.name }}</h4>
+                        <p class="text-xs text-green-400">{{ artifact.bonus }}</p>
+                      </div>
+                    </div>
+                    <button 
+                      (click)="toggleArtifact(artifact)"
+                      [disabled]="!artifact.equipped && equippedArtifacts().length >= maxEquippedArtifacts"
+                      class="text-white font-bold py-2 px-4 rounded-md transition-all duration-200 text-sm w-28 text-center disabled:cursor-not-allowed disabled:bg-gray-600/50"
+                      [class.bg-green-600]="artifact.equipped"
+                      [class.hover:bg-green-500]="artifact.equipped"
+                      [class.bg-violet-600]="!artifact.equipped"
+                      [class.hover:bg-violet-500]="!artifact.equipped"
+                      >
+                      {{ artifact.equipped ? 'Unequip' : 'Equip' }}
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          
+          @if(activeInventoryTab() === 'Items') {
+            <div class="animate-fade-in">
+               <div class="space-y-3">
+                 @for(item of inventoryItems(); track item.id) {
+                    <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 flex items-center space-x-3">
+                      <span class="text-3xl">{{ item.icon }}</span>
+                      <div class="flex-grow">
+                        <h4 class="font-semibold text-white">{{ item.name }}</h4>
+                        <p class="text-xs text-gray-400">{{ item.description }}</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-lg font-bold text-white">x{{ item.quantity }}</span>
+                      </div>
+                    </div>
+                 }
+               </div>
+            </div>
+          }
+
+          @if(activeInventoryTab() === 'Currencies') {
+            <div class="animate-fade-in">
+              <div class="space-y-3">
+                @for(currency of currencyItems(); track currency.name) {
+                  <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 flex items-center space-x-4">
+                    <span class="text-4xl">{{ currency.icon }}</span>
+                    <div>
+                      <h4 class="font-semibold text-white text-lg">{{ currency.name }}</h4>
+                      <p class="text-sm font-bold text-yellow-300">{{ formatStat(currency.amount()) }}</p>
+                      <p class="text-xs text-gray-400 mt-1">{{ currency.description }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+      @case ('Dungeons') {
+        <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold neon-text-blue mb-4">Dungeons</h2>
+          <p class="mb-6 text-gray-400">Send your army on automated runs for massive rewards.</p>
+          <div class="space-y-3">
+             @for(dungeon of dungeons(); track dungeon.id) {
+               <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 flex justify-between items-center">
+                  <div class="flex-1 pr-4">
+                    <h4 class="font-semibold text-white">{{dungeon.icon}} {{dungeon.name}}</h4>
+                    <p class="text-xs text-gray-400">Duration: {{ formatTime(dungeon.duration) }}</p>
+                    <p class="text-xs text-green-400 font-semibold">Reward: {{ formatStat(dungeon.rewards.amount) }} {{ dungeon.rewards.type === 'mana' ? 'Mana' : dungeon.rewards.type === 'xp' ? 'XP' : 'Gems' }}</p>
+                    @if(dungeon.status === 'InProgress') {
+                      <p class="text-xs text-yellow-400 font-bold mt-1">In Progress: {{ formatTime(dungeon.remainingTime()) }}</p>
+                    }
+                    @if(dungeon.status === 'Completed') {
+                      <p class="text-xs text-green-400 font-bold mt-1">Completed! Claim your rewards.</p>
+                    }
+                  </div>
+                  <div class="w-28 text-center">
+                    @switch (dungeon.status) {
+                      @case ('Idle') {
+                        <button (click)="startDungeon(dungeon)" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-md transition-all duration-200 neon-glow-violet text-sm">Start</button>
+                      }
+                      @case ('InProgress') {
+                        <button disabled class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md text-sm cursor-not-allowed">Running...</button>
+                      }
+                      @case ('Completed') {
+                        <button (click)="claimDungeonRewards(dungeon)" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-md transition-all duration-200 text-sm">Claim</button>
+                      }
+                    }
+                  </div>
+               </div>
+             }
+          </div>
+        </div>
+      }
+      @case ('Menu') {
+        <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold neon-text-blue mb-4">Menu</h2>
+          <div class="grid grid-cols-2 gap-4">
+            @for (item of menuItems; track item.id) {
+              <button (click)="setView(item.id)" class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 text-center cursor-pointer hover:bg-violet-900/40 transition-colors">
+                <p class="font-semibold">{{item.name}}</p>
+              </button>
+            }
+          </div>
+        </div>
+      }
+       @case ('Ascension') {
+        <div class="animate-fade-in">
+          <button (click)="setView('Menu')" class="mb-4 flex items-center text-violet-300 hover:text-violet-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            Back to Menu
+          </button>
+          <h2 class="text-2xl font-bold neon-text-blue mb-4">Ascension</h2>
+          
+          <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+            <h3 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Ascension Stats</h3>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <p>Ascensions:</p><p class="font-bold text-white text-right">{{ ascensionCount() }}</p>
+                <p>Shadow Essence:</p><p class="font-bold text-white text-right">{{ formatStat(shadowEssence()) }}</p>
+                <p>Sovereign Points:</p><p class="font-bold text-white text-right">{{ sovereignPoints() }}</p>
+            </div>
+          </div>
+          
+          <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+            <h3 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Permanent Bonuses</h3>
+             <div class="grid grid-cols-2 gap-2 text-sm">
+                <p>Mana Gain Bonus:</p><p class="font-bold text-green-400 text-right">+{{ (permanentManaBonus() * 100).toFixed(0) }}%</p>
+             </div>
+          </div>
+
+          <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+            <h3 class="font-semibold text-violet-300 mb-2 text-lg">Ready to Ascend?</h3>
+            <p class="text-sm text-gray-400 mb-3">Reach Zone {{minZoneForAscension}} to ascend and earn permanent rewards.</p>
+            <div class="w-full bg-gray-800 rounded-full h-4 border border-violet-700/50">
+              <div class="bg-gradient-to-r from-blue-500 to-violet-500 h-full rounded-full text-center text-xs font-bold flex items-center justify-center" [style.width]="(currentZone() / minZoneForAscension * 100) + '%'">
+                {{ currentZone() }} / {{ minZoneForAscension }}
+              </div>
+            </div>
+             @if(ascensionReady()) {
+                <div class="mt-4 text-center">
+                    <p class="font-semibold text-white">Rewards for Ascending now:</p>
+                    <p class="text-green-400">+{{ formatStat(ascensionEssenceGain()) }} Shadow Essence</p>
+                    <p class="text-green-400">+{{ formatStat(ascensionPointsGain()) }} Sovereign Points</p>
+                </div>
+             }
+          </div>
+          
+          <button (click)="ascend()" [disabled]="!ascensionReady()" class="w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-200 text-lg disabled:cursor-not-allowed disabled:bg-gray-600/50" [class.bg-red-700]="ascensionReady()" [class.hover:bg-red-600]="ascensionReady()">
+            Ascend
+          </button>
+           <p class="text-xs text-center mt-2 text-gray-500">This will reset your current progress for permanent gains.</p>
+
+        </div>
+      }
+      @case('Raids') {
+        <div class="animate-fade-in">
+          @if(raidBoss(); as boss) {
+            <button (click)="setView('Menu')" class="mb-4 flex items-center text-violet-300 hover:text-violet-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              Back to Menu
+            </button>
+            <h2 class="text-2xl font-bold neon-text-blue mb-4">Weekly Raid</h2>
+
+            <!-- Boss Info Panel -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6 text-center">
+              <h3 class="font-bold text-2xl text-red-400 mb-2">{{ boss.name }}</h3>
+              <p class="text-sm text-gray-400 mb-3">Time Remaining: <span class="font-bold text-white">{{ formatTime(boss.timer()) }}</span></p>
+              
+              <div class="mb-2">
+                <div class="w-full bg-gray-800 rounded-full h-6 border-2 border-red-900/50">
+                  <div class="bg-gradient-to-r from-red-500 to-red-800 h-full rounded-full text-center text-sm font-bold flex items-center justify-center" 
+                       [style.width]="(boss.currentHp() / boss.totalHp * 100) + '%'">
+                    {{ formatStat(boss.currentHp()) }} / {{ formatStat(boss.totalHp) }}
+                  </div>
+                </div>
+              </div>
+              <p class="font-semibold">Phase {{ boss.currentPhase() }} / {{ boss.phases }}</p>
+            </div>
+
+            <!-- Player & Action Panel -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                <div class="grid grid-cols-2 gap-4 text-center mb-4">
+                    <div>
+                        <p class="text-sm text-gray-400">Your Damage</p>
+                        <p class="text-lg font-bold text-yellow-300">{{ formatStat(playerDamageDealt()) }}</p>
+                    </div>
+                     <div>
+                        <p class="text-sm text-gray-400">Your Rank</p>
+                        <p class="text-lg font-bold text-yellow-300">#{{ playerRaidRank() }}</p>
+                    </div>
+                </div>
+                @if (boss.status === 'InProgress') {
+                    <button (click)="toggleRaidParticipation()" class="w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-200 text-lg" 
+                        [class.bg-green-600]="!isRaiding()" [class.hover:bg-green-500]="!isRaiding()"
+                        [class.bg-red-700]="isRaiding()" [class.hover:bg-red-600]="isRaiding()">
+                        {{ isRaiding() ? 'Leave the Fray' : 'Join the Fray' }}
+                    </button>
+                } @else {
+                    <p class="text-center font-bold text-xl" [class.text-green-400]="boss.status === 'Defeated'" [class.text-red-400]="boss.status === 'Expired'">
+                        {{ boss.status === 'Defeated' ? 'BOSS DEFEATED' : 'RAID EXPIRED' }}
+                    </p>
+                    @if(!hasClaimedRaidRewards()) {
+                        <button (click)="claimRaidRewards()" class="w-full mt-2 text-white font-bold py-3 px-4 rounded-md transition-all duration-200 text-lg bg-yellow-600 hover:bg-yellow-500">
+                           Claim Rewards
+                        </button>
+                    }
+                }
+            </div>
+
+            <!-- Leaderboard -->
+            <div>
+              <h3 class="text-lg font-bold neon-text-blue mb-3">Leaderboard</h3>
+              <div class="space-y-2">
+                @for(entry of raidLeaderboard(); track entry.rank) {
+                    <div class="p-2 rounded-md flex justify-between items-center text-sm" [class.bg-violet-800/50]="entry.isPlayer" [class.bg-gray-800/30]="!entry.isPlayer">
+                        <div class="font-bold" [class.text-yellow-300]="entry.rank <= 3">{{ entry.rank }}. {{ entry.name }}</div>
+                        <div class="font-semibold text-white">{{ formatStat(entry.damageDealt()) }}</div>
+                    </div>
+                }
+              </div>
+            </div>
+          } @else {
+             <p class="text-center text-gray-500 mt-8">No active raid boss.</p>
+          }
+        </div>
+      }
+      @case('Monarchs') {
+        <div class="animate-fade-in">
+           <button (click)="setView('Menu')" class="mb-4 flex items-center text-violet-300 hover:text-violet-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              Back to Menu
+            </button>
+            <h2 class="text-2xl font-bold neon-text-blue mb-4">The Monarchs</h2>
+
+            @if(isMonarchSystemUnlocked()) {
+              @if(activeMonarch(); as monarch) {
+                <!-- Monarch Dashboard -->
+                 <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6 text-center">
+                    <h3 class="font-bold text-2xl text-violet-300 mb-2">{{ monarch.name }}</h3>
+                    <p class="text-sm text-gray-400">{{ monarch.description }}</p>
+                </div>
+
+                <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                    <h4 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Passive Bonuses</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm text-green-400">
+                      @for(bonus of monarch.passiveBonuses; track bonus) {
+                        <li>{{ bonus }}</li>
+                      }
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                  <h4 class="font-semibold text-violet-300 mb-3 text-lg border-b border-violet-800/50 pb-2">Monarch Talent Tree</h4>
+                  <div class="bg-gray-900/80 p-3 rounded-lg border border-violet-800/50 mb-4 text-center">
+                    <p class="font-bold text-lg text-yellow-300">{{ sovereignPoints() }} <span class="text-gray-300 font-normal">Sovereign Points Available</span></p>
+                  </div>
+
+                  <div class="space-y-6">
+                    @for (tier of [1, 2, 3, 4, 5]; track tier) {
+                      <div class="p-3 rounded-lg" [class.opacity-50]="!isMonarchTierUnlocked(tier, monarch)">
+                        <h5 class="font-bold text-violet-400 mb-3 border-b-2 border-violet-800/50 pb-1">Tier {{ tier }}</h5>
+                        <div class="space-y-3">
+                           @for(skill of monarch.skillTree; track skill.id) {
+                            @if(skill.tier === tier) {
+                              <div class="bg-gray-800/50 p-3 rounded-lg flex justify-between items-center">
+                                <div>
+                                  <h4 class="font-semibold text-white">{{ skill.name }} <span class="text-yellow-400">[{{ skill.level }}/{{ skill.maxLevel }}]</span></h4>
+                                  <p class="text-xs text-gray-400">{{ skill.description }}</p>
+                                </div>
+                                <button 
+                                  (click)="purchaseMonarchSkill(skill)"
+                                  [disabled]="sovereignPoints() < skill.cost || skill.level >= skill.maxLevel || !isMonarchTierUnlocked(skill.tier, monarch)"
+                                  class="text-white font-bold py-2 px-4 rounded-md transition-all duration-200 text-sm w-32 text-center disabled:cursor-not-allowed disabled:bg-gray-600"
+                                  [class.bg-violet-600]="skill.level < skill.maxLevel"
+                                  [class.hover:bg-violet-500]="skill.level < skill.maxLevel"
+                                  [class.neon-glow-violet]="skill.level < skill.maxLevel && sovereignPoints() >= skill.cost && isMonarchTierUnlocked(skill.tier, monarch)"
+                                  [class.bg-yellow-600]="skill.level >= skill.maxLevel">
+                                  @if(skill.level >= skill.maxLevel) {
+                                    <span>Maxed</span>
+                                  } @else {
+                                    <span>Upgrade ({{skill.cost}})</span>
+                                  }
+                                </button>
+                              </div>
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+              } @else {
+                <!-- Monarch Selection -->
+                <p class="mb-6 text-gray-400">Your power has been acknowledged. Choose your path, Sovereign. This choice is permanent.</p>
+                <div class="space-y-4">
+                  @for(monarch of monarchs; track monarch.id) {
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+                        <h3 class="font-bold text-xl text-violet-300 mb-2">{{ monarch.name }}</h3>
+                        <p class="text-sm text-gray-400 mb-4">{{ monarch.description }}</p>
+                        <button (click)="selectMonarch(monarch.id)" class="w-full text-white font-bold py-2 px-4 rounded-md transition-all duration-200 bg-violet-600 hover:bg-violet-500 neon-glow-violet">
+                          Choose {{ monarch.id }}
+                        </button>
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              <!-- Locked Screen -->
+              <div class="text-center p-8 bg-gray-900/50 rounded-lg border border-violet-800/50">
+                  <h3 class="text-2xl font-bold text-red-500 mb-4">System Locked</h3>
+                  <p class="text-lg">You must prove your worth to wield the power of a Monarch.</p>
+                  <p class="text-gray-400">Reach <span class="font-bold text-white">10 Ascensions</span> to unlock this system.</p>
+                  <p class="text-2xl font-bold mt-4">{{ ascensionCount() }} / 10</p>
+              </div>
+            }
+        </div>
+      }
+      @case ('Quests') {
+        <div class="animate-fade-in">
+           <button (click)="setView('Menu')" class="mb-4 flex items-center text-violet-300 hover:text-violet-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              Back to Menu
+            </button>
+          <h2 class="text-2xl font-bold neon-text-blue mb-4">Quest Log</h2>
+
+           <!-- Quest Tabs -->
+          <div class="flex items-center justify-center border-b border-violet-800/50 mb-4">
+            <button (click)="activeQuestTab.set('InProgress')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeQuestTab() === 'InProgress'" [class.border-b-2]="activeQuestTab() === 'InProgress'" [class.border-violet-400]="activeQuestTab() === 'InProgress'" [class.text-gray-500]="activeQuestTab() !== 'InProgress'">
+              In Progress
+            </button>
+            <button (click)="activeQuestTab.set('Available')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeQuestTab() === 'Available'" [class.border-b-2]="activeQuestTab() === 'Available'" [class.border-violet-400]="activeQuestTab() === 'Available'" [class.text-gray-500]="activeQuestTab() !== 'Available'">
+              Available
+            </button>
+             <button (click)="activeQuestTab.set('Completed')" class="px-4 py-2 text-lg font-semibold transition-colors" [class.text-violet-400]="activeQuestTab() === 'Completed'" [class.border-b-2]="activeQuestTab() === 'Completed'" [class.border-violet-400]="activeQuestTab() === 'Completed'" [class.text-gray-500]="activeQuestTab() !== 'Completed'">
+              Completed
+            </button>
+          </div>
+
+          <div class="flex flex-col md:flex-row gap-4">
+            <!-- Quest List -->
+            <div class="w-full md:w-1/3 space-y-2">
+               @switch(activeQuestTab()) {
+                 @case('InProgress') {
+                    @for(quest of inProgressQuests(); track quest.id) {
+                      <div (click)="selectedQuest.set(quest)" class="p-3 rounded-lg border cursor-pointer transition-colors" [class.bg-violet-900/50]="selectedQuest()?.id === quest.id" [class.border-violet-600]="selectedQuest()?.id === quest.id" [class.bg-gray-900/50]="selectedQuest()?.id !== quest.id" [class.border-violet-800/50]="selectedQuest()?.id !== quest.id">
+                        <p class="font-semibold">{{ quest.title }}</p>
+                        <p class="text-xs text-gray-400">{{ quest.type }}</p>
+                      </div>
+                    } @empty {
+                       <p class="text-center text-gray-500 p-4">No active quests.</p>
+                    }
+                 }
+                 @case('Available') {
+                    @for(quest of availableQuests(); track quest.id) {
+                       <div (click)="selectedQuest.set(quest)" class="p-3 rounded-lg border cursor-pointer transition-colors" [class.bg-violet-900/50]="selectedQuest()?.id === quest.id" [class.border-violet-600]="selectedQuest()?.id === quest.id" [class.bg-gray-900/50]="selectedQuest()?.id !== quest.id" [class.border-violet-800/50]="selectedQuest()?.id !== quest.id">
+                        <p class="font-semibold">{{ quest.title }}</p>
+                        <p class="text-xs text-gray-400">Lvl {{ quest.rankRequirement }}</p>
+                      </div>
+                    } @empty {
+                       <p class="text-center text-gray-500 p-4">No new quests available.</p>
+                    }
+                 }
+                  @case('Completed') {
+                    @for(quest of completedQuests(); track quest.id) {
+                       <div (click)="selectedQuest.set(quest)" class="p-3 rounded-lg border cursor-pointer transition-colors opacity-70" [class.bg-violet-900/50]="selectedQuest()?.id === quest.id" [class.border-violet-600]="selectedQuest()?.id === quest.id" [class.bg-gray-900/50]="selectedQuest()?.id !== quest.id" [class.border-violet-800/50]="selectedQuest()?.id !== quest.id">
+                        <p class="font-semibold">{{ quest.title }}</p>
+                        <p class="text-xs text-gray-400">✓ Completed</p>
+                      </div>
+                    } @empty {
+                       <p class="text-center text-gray-500 p-4">No quests completed yet.</p>
+                    }
+                 }
+               }
+            </div>
+            <!-- Quest Details -->
+            <div class="w-full md:w-2/3 bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+               @if(selectedQuest(); as quest) {
+                  <div>
+                    <h3 class="text-xl font-bold text-violet-300 mb-2">{{ quest.title }}</h3>
+                    <p class="text-sm text-gray-400 mb-4">{{ quest.synopsis }}</p>
+
+                    <h4 class="font-semibold text-white mb-2">Objectives:</h4>
+                    <div class="space-y-3 mb-4">
+                      @for(obj of quest.objectives; track obj.id) {
+                        <div>
+                          <div class="flex justify-between items-center text-xs mb-1">
+                            <span>{{ obj.description }}</span>
+                            <span>{{ formatStat(obj.progress()) }} / {{ formatStat(obj.target) }}</span>
+                          </div>
+                          <div class="w-full bg-gray-800 rounded-full h-2">
+                             <div class="bg-gradient-to-r from-blue-500 to-violet-500 h-2 rounded-full" [style.width]="(obj.progress() / obj.target * 100) + '%'"></div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <h4 class="font-semibold text-white mb-2">Rewards:</h4>
+                    <p class="text-sm text-green-400 mb-6">
+                      @if (quest.rewards.mana) { <span>{{ formatStat(quest.rewards.mana) }} Mana</span> }
+                      @if (quest.rewards.gems) { <span> &bull; {{ quest.rewards.gems }} Gems</span> }
+                      @if (quest.rewards.shadowEssence) { <span> &bull; {{ quest.rewards.shadowEssence }} Essence</span> }
+                      @if (quest.rewards.artifact) { <span> &bull; Artifact: {{ quest.rewards.artifact.name }}</span> }
+                      @if (quest.rewards.skill) { <span> &bull; Skill: {{ quest.rewards.skill.name }}</span> }
+                      @if (quest.rewards.items) {
+                        @for(item of quest.rewards.items; track item.id) {
+                          <span> &bull; {{ item.quantity }}x {{ getItemName(item.id) }}</span>
+                        }
+                      }
+                    </p>
+                    
+                    @if (quest.id === 'q3_essence_extraction' && quest.status() === 'InProgress' && !quest.objectives[2].isComplete()) {
+                      <div class="my-4">
+                         <button (click)="refineQuestShards(quest)" [disabled]="mana() < quest.objectives[2].target" class="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md transition-all">
+                           Refine Shards ({{formatStat(quest.objectives[2].target)}} Mana)
+                         </button>
+                      </div>
+                    }
+
+                    @if(quest.status() === 'Available') {
+                      <button (click)="startQuest(quest)" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-md transition-all neon-glow-violet">
+                        Start Quest
+                      </button>
+                    }
+                    @if(quest.status() === 'Completed') {
+                       <button (click)="claimQuestRewards(quest)" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-md transition-all">
+                        Claim Rewards
+                      </button>
+                    }
+                     @if(quest.status() === 'Claimed') {
+                      <div class="text-center p-2 rounded-md bg-gray-800 border border-green-500/50">
+                        <p class="font-bold text-green-400">Rewards Claimed</p>
+                      </div>
+                    }
+
+                  </div>
+               } @else {
+                  <div class="flex items-center justify-center h-full">
+                    <p class="text-gray-500">Select a quest to see details.</p>
+                  </div>
+               }
+            </div>
+          </div>
+        </div>
+      }
+      @case('Gates') {
+         <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold neon-text-blue mb-4">The Gates</h2>
+          
+          @switch(proceduralDungeonsView()) {
+            @case('Selection') {
+              <div class="animate-fade-in">
+                <p class="mb-6 text-gray-400">The Monarchs grant you access to unstable Gates. Explore these shifting dungeons for great reward, but beware the risks.</p>
+                <div class="space-y-4">
+                   <!-- Shadow Crypt -->
+                  <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+                      <h3 class="font-bold text-xl text-violet-300 mb-2">💀 Shadow Crypt</h3>
+                      <p class="text-sm text-gray-400 mb-4">A dark, eerie place filled with the restless dead.</p>
+                      <div class="grid grid-cols-3 gap-2">
+                        <button (click)="generateDungeon('Shadow Crypt', 10)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-gray-600 hover:bg-gray-500 text-sm">Shallow (10)</button>
+                        <button (click)="generateDungeon('Shadow Crypt', 20)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-violet-700 hover:bg-violet-600 text-sm">Medium (20)</button>
+                        <button (click)="generateDungeon('Shadow Crypt', 30)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-red-800 hover:bg-red-700 text-sm">Deep (30)</button>
+                      </div>
+                  </div>
+                  <!-- Frost Cave -->
+                  <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50">
+                      <h3 class="font-bold text-xl text-blue-300 mb-2">❄️ Frost Cave</h3>
+                      <p class="text-sm text-gray-400 mb-4">A cavern of eternal ice, home to frigid beasts.</p>
+                      <div class="grid grid-cols-3 gap-2">
+                        <button (click)="generateDungeon('Frost Cave', 10)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-gray-600 hover:bg-gray-500 text-sm">Shallow (10)</button>
+                        <button (click)="generateDungeon('Frost Cave', 20)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-blue-700 hover:bg-blue-600 text-sm">Medium (20)</button>
+                        <button (click)="generateDungeon('Frost Cave', 30)" class="w-full text-white font-bold py-2 px-2 rounded-md transition-all duration-200 bg-red-800 hover:bg-red-700 text-sm">Deep (30)</button>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case('Exploring') {
+              @if(activeGeneratedDungeon(); as dungeon) {
+                <div class="animate-fade-in">
+                    <!-- Dungeon Header -->
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6">
+                      <h3 class="font-bold text-2xl text-center text-violet-300 mb-2">{{ dungeon.name }}</h3>
+                       <div class="flex justify-between items-center text-lg mb-2">
+                          <span>Floor {{ dungeon.currentFloor + 1 }} / {{ dungeon.depth }}</span>
+                          <span class="font-bold">Stamina: {{ dungeon.stamina }}</span>
+                       </div>
+                       <div class="w-full bg-gray-800 rounded-full h-4">
+                          <div class="bg-gradient-to-r from-cyan-400 to-blue-600 h-4 rounded-full" [style.width]="(dungeon.stamina / dungeon.maxStamina * 100) + '%'"></div>
+                       </div>
+                    </div>
+
+                    <!-- Event / Encounter Panel -->
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-violet-800/50 mb-6 min-h-[150px] flex flex-col justify-center">
+                        @if(dungeon.lastEventResult(); as result) {
+                            <div class="animate-fade-in text-center">
+                                <p class="text-lg font-semibold text-yellow-300 mb-2">Outcome</p>
+                                <p>{{result.outcomeText}}</p>
+                            </div>
+                        } @else {
+                             @if(dungeon.floors[dungeon.currentFloor]; as floor) {
+                                <div class="text-center">
+                                    <p class="text-lg font-semibold text-violet-300 mb-2">{{ floor.type }}</p>
+                                    <p>{{ floor.encounterText }}</p>
+                                </div>
+                             }
+                        }
+                    </div>
+
+                    <!-- Accumulated Rewards -->
+                     <div class="bg-gray-900/50 p-3 rounded-lg border border-violet-800/50 mb-6 text-center">
+                        <p class="font-semibold text-violet-300 mb-2">Accumulated Rewards</p>
+                         <div class="flex justify-center items-center space-x-6">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-yellow-400 text-xl">💰</span>
+                                <span class="text-lg">{{ formatStat(dungeon.accumulatedRewards.mana) }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-violet-400 text-xl">💎</span>
+                                <span class="text-lg">{{ formatStat(dungeon.accumulatedRewards.gems) }}</span>
+                            </div>
+                        </div>
+                     </div>
+                    
+                    <!-- Actions -->
+                    @if(dungeon.status === 'Event') {
+                         @if(dungeon.floors[dungeon.currentFloor].event; as event) {
+                            <div class="space-y-3 animate-fade-in">
+                                @for(option of event.options; track option.text) {
+                                    <button (click)="resolveDungeonEvent(option)" class="w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-200 bg-violet-700 hover:bg-violet-600">
+                                        {{ option.text }}
+                                    </button>
+                                }
+                            </div>
+                         }
+                    } @else {
+                        <div class="grid grid-cols-2 gap-4">
+                            <button (click)="escapeDungeon()" class="w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-200 bg-gray-600 hover:bg-gray-500">
+                                Escape
+                            </button>
+                            <button (click)="progressDungeonFloor()" class="w-full text-white font-bold py-3 px-4 rounded-md transition-all duration-200 bg-green-600 hover:bg-green-500">
+                                Delve Deeper
+                            </button>
+                        </div>
+                    }
+
+                </div>
+              }
+            }
+            @case('Results') {
+              @if(dungeonRunResult(); as result) {
+                <div class="animate-fade-in text-center">
+                    <div class="bg-gray-900/50 p-6 rounded-lg border border-violet-800/50">
+                        @if(result.status === 'Completed') {
+                            <h3 class="font-bold text-3xl text-green-400 mb-4">Expedition Successful!</h3>
+                            <p class="text-gray-300 mb-6">You escaped the Gate with your life and your loot.</p>
+                        } @else {
+                             <h3 class="font-bold text-3xl text-red-500 mb-4">Expedition Failed!</h3>
+                             <p class="text-gray-300 mb-6">You were overwhelmed by the Gate's power and lost some of your rewards.</p>
+                        }
+                        
+                        <div class="bg-gray-800/50 p-4 rounded-lg mb-6">
+                           <p class="font-semibold text-violet-300 mb-2">Total Rewards Gained</p>
+                            <div class="flex justify-center items-center space-x-6">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-yellow-400 text-2xl">💰</span>
+                                    <span class="text-xl">{{ formatStat(result.rewards.mana) }}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-violet-400 text-2xl">💎</span>
+                                    <span class="text-xl">{{ formatStat(result.rewards.gems) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button (click)="proceduralDungeonsView.set('Selection')" class="w-full max-w-sm mx-auto text-white font-bold py-3 px-4 rounded-md transition-all duration-200 bg-violet-600 hover:bg-violet-500">
+                           Return to Gates
+                        </button>
+                    </div>
+                </div>
+              }
+            }
+          }
+         </div>
+      }
+    }
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 z-10 bg-[#0a0a12]/80 backdrop-blur-sm border-t border-violet-900/50 flex justify-around items-center h-20">
+    @for (item of navItems; track item.id) {
+      <button (click)="setView(item.id)" class="flex flex-col items-center justify-center w-full h-full text-gray-400 transition-colors duration-200 hover:text-white" [class.active-nav-item]="activeView() === item.id">
+        <div [innerHTML]="item.icon"></div>
+        <span class="text-xs mt-1">{{ item.name }}</span>
+      </button>
+    }
+  </nav>
+
+</div>
